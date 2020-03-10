@@ -1,5 +1,7 @@
-var camera, scene, renderer, light, helper, controls, i = 0
-const letters = []
+var camera, scene, renderer, light, helper, controls, i = 0, j = 0, bl = 20
+var letters = []
+var rotate = []
+var trigger = true
 //const axis = new THREE.Vector3( 0, 1, 0 ).normalize()
 
 var gui = new dat.gui.GUI()
@@ -20,6 +22,16 @@ const math = {
   },
   norm: (value, min, max) => {
     return (value - min) / (max - min)
+  }
+}
+
+function count(item) {
+  let counter = 0
+  return function() {
+    if (item.rotation.y < 6.0) {
+      counter++
+      item.rotation.y += 0.1
+    }
   }
 }
 
@@ -120,6 +132,8 @@ function init() {
       
       scene.add(mesh)
     })
+
+    rotate = letters.map(item => count(item))
   })
   
   const width = window.innerWidth
@@ -135,11 +149,14 @@ function init() {
   mesh1.position.set( 0, 0, -40)
   scene.add(mesh1)
   
-  renderer = new THREE.WebGLRenderer( { antialias: true } )
+  const canvas = document.getElementById('c1')
+  renderer = new THREE.WebGLRenderer( {canvas: canvas, antialias: true } )
   renderer.setSize( window.innerWidth, window.innerHeight )
-
-  document.body.appendChild( renderer.domElement )
-
+  
+  window.addEventListener("resize", resize)
+  const footer = document.querySelector('footer')
+  footer.style.color = '#797882'
+//  document.body.appendChild( renderer.domElement )
 }
 
 function animate() {
@@ -154,14 +171,33 @@ function animate() {
 
 //  letters[6].rotateOnAxis( axis, Math.PI * 0.01 )
 //
-  if (i < letters.length) {
-    if (letters[i].rotation.y < 6.2 ) {
-      letters[i].rotation.y += 0.2
-    } else {
-      i++
+  
+ 
+  for (let k = 0; k < j; k++) {
+    rotate[k]()
+  }
+
+  if (i < bl) {
+    i++
+  } else {
+    i = 0
+    if (j < letters.length) {
+      j++
     }
   }
 
+//  if (i < letters.length) {
+//     if (letters[i].rotation.y < 6.2 ) {
+//      letters[i].rotation.y += 0.2
+//    } else {
+//      i++
+//    }
+//  }
+
 //  helper.update()
+}
+
+function resize() {
+  renderer.setSize( window.innerWidth, window.innerHeight )
 }
 
