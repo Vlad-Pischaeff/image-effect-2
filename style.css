@@ -22,7 +22,7 @@ footer {
   font-family: 'Prompt', serif;
   text-transform: uppercase;
   font-size: 0.7rem;
-  transition: color 2s ease-out 4.3s;
+  transition: all ease-out 2.5s;
 }
 #c1 {
   position: fixed;

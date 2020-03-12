@@ -1,14 +1,6 @@
 var camera, scene, renderer, light, helper, controls
 var gui = new dat.gui.GUI()
-const obj = {
-  positionX: 0,
-  positionY: 0,
-  positionZ: 0,
-  targetX: 0,
-  targetY: 0,
-  targetZ: 0,
-  lightColor:  [ 255, 255, 255 ]
-}
+const loader = new THREE.FontLoader()
 
 class ColorGUIHelper {
     constructor(object, prop) {
@@ -23,10 +15,15 @@ class ColorGUIHelper {
     }
   }
 
-
 //----------------------------------------------------------
 init()
 animate()
+//----------------------------------------------------------
+function loadFont(url) {
+  return new Promise((resolve, reject) => {
+    loader.load(url, resolve, undefined, reject)
+  })
+}
 
 function init() {
   camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 )
@@ -55,62 +52,48 @@ function init() {
   helper = new THREE.SpotLightHelper(light)
   scene.add(helper)
   
-{
-  const loader = new THREE.FontLoader()
+
+
   // promisify font loading
-  function loadFont(url) {
-    return new Promise((resolve, reject) => {
-      loader.load(url, resolve, undefined, reject)
-    })
-  }
 
-  async function doit() {
 
-    const font = await loadFont('https://cheburator.info/font/Prompt_Light_Regular.json')
-    return new THREE.TextBufferGeometry('three.js', {
-      font: font,
-      size: 3.0,
-      height: .2,
-      curveSegments: 12,
-      bevelEnabled: true,
-      bevelThickness: 0.15,
-      bevelSize: .3,
-      bevelSegments: 5,
-    })
-//    const font = await loadFont('https://cheburator.info/font/Prompt_Light_Regular.json', 
-//      function (font) {
-//        let geometry = new THREE.TextGeometry('TELESCOPE', {
-//          font: font,
-//          size: 15,
-//          height: 0.1,
-//          curveSegments: 4,
-//          bevelEnabled: false,
-//          bevelThickness: 0.02,
-//          bevelSize: 0.05,
-//          bevelSegments: 3
-//        })
-        
-      console.log('font', font)
+  async function doText(str) {
+    let font = await loadFont('Prompt_Light_Regular.json')
+    let arr = str.split('')
+    
+    arr.forEach((item, index) => {
+      let geometry = new THREE.TextBufferGeometry(item, {
+          font: font,
+          size: 13.0,
+          height: .2,
+          curveSegments: 12,
+          bevelEnabled: true,
+          bevelThickness: 0.15,
+          bevelSize: .3,
+          bevelSegments: 5,
+      })
+
       let material = new THREE.MeshLambertMaterial({
         color: 0xa6c7ff,
         emissive: 0x000000,
       })
 
       let mesh = new THREE.Mesh(geometry, material)
-      mesh.position.set(-20, 0, 40)
+      mesh.position.set(-160 + 30 * index, 0, 40)
 
       scene.add(mesh)
-    }
-  
-  doit()
-}
+    })
+  }
+
+  doText('TELESCOPE')
+
 
   const width = window.innerWidth
   const height = window.innerHeight
   const widthSegments = window.innerWidth/10
   const heightSegments = window.innerHeight/10
   const square = new THREE.PlaneBufferGeometry(width, height, widthSegments, heightSegments)
-  var material = new THREE.MeshLambertMaterial({
+  material = new THREE.MeshLambertMaterial({
     color: 0x0d1b33,
     emissive: 0x000000,
   })

@@ -1,20 +1,9 @@
-var camera, scene, renderer, light, helper, controls, i = 0, j = 0, bl = 20
+var camera, scene, renderer, light, helper, controls, i = 0, j = 0, bl = 15
 var letters = []
-var rotate = []
+var isRotated = []
 var trigger = true
-//const axis = new THREE.Vector3( 0, 1, 0 ).normalize()
-
-var gui = new dat.gui.GUI()
-
-const obj = {
-  positionX: 0,
-  positionY: 0,
-  positionZ: 0,
-  targetX: 0,
-  targetY: 0,
-  targetZ: 0,
-  lightColor:  [ 255, 255, 255 ]
-}
+const text = 'TELESCOPE'
+const loader = new THREE.FontLoader()
 
 const math = {
   lerp: (a, b, n) => {
@@ -28,9 +17,12 @@ const math = {
 function count(item) {
   let counter = 0
   return function() {
-    if (item.rotation.y < 6.0) {
+    if (item.rotation.y < 6.2) {
       counter++
       item.rotation.y += 0.1
+      return false
+    } else {
+      return true
     }
   }
 }
@@ -53,6 +45,17 @@ class ColorGUIHelper {
       this.object[this.prop].set(hexString);
     }
   }
+
+function loadFont(url) {
+  return new Promise((resolve, reject) => {
+    loader.load(url, resolve, undefined, reject)
+  })
+}
+
+function setFooterColor() {
+  const footer = document.querySelector('footer')
+  footer.style.color = '#797882'
+}
 //----------------------------------------------------------
 init()
 animate()
@@ -76,65 +79,44 @@ function init() {
   light.target.position.x = 0
   light.target.position.y = 0
   light.target.position.z = 200
-//  gui.add(light.position, 'x', -200, 200)
-//  gui.add(light.position, 'y', -200, 200)
-//  gui.add(light.position, 'z', -200, 200)
-//  gui.add(light.target.position, 'x', -200, 200)
-//  gui.add(light.target.position, 'y', -200, 200)
-//  gui.add(light.target.position, 'z', -200, 200)
-//  gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color')
   
   scene.add(light)
   scene.add(light.target)
 
-//  helper = new THREE.SpotLightHelper(light)
-//  scene.add(helper)
-  
-//  var bulbGeometry = new THREE.SphereBufferGeometry( 0.02, 16, 8 )
-//  bulbLight = new THREE.PointLight( 0x800000, 1, 100, 2 )
-//
-//  bulbMat = new THREE.MeshStandardMaterial( {
-//         emissive: 0x333333,
-//         emissiveIntensity: 1,
-//         color: 0x000000
-//  } )
-//  bulbLight.add( new THREE.Mesh( bulbGeometry, bulbMat ) )
-//  bulbLight.position.set( 0.5, 0.1, 7 )
-//  bulbLight.castShadow = true
-//  scene.add( bulbLight )
-  
-  var loader = new THREE.FontLoader()
-  loader.load( 'https://cheburator.info/font/Prompt_Light_Regular.json', function (font) {
-    let text = 'TELESCOPE'
-    let arr = text.split('')
-    let offset = 30
+  async function doText(str) {
+    let font = await loadFont('https://cheburator.info/font/Prompt_Light_Regular.json')
+    let arr = str.split('')
+    let offset = 30 
     
     arr.forEach((item, index) => {
-      var geometry = new THREE.TextGeometry(item, {
-        font: font,
-        size: 9,
-        height: 0.5,
-        curveSegments: 4,
-        bevelEnabled: false,
-        bevelThickness: 0.02,
-        bevelSize: 0.05,
-        bevelSegments: 3
+      let geometry = new THREE.TextBufferGeometry(item, {
+          font: font,
+          size: 9.0,
+          height: .5,
+          curveSegments: 12,
+          bevelEnabled: false,
+          bevelThickness: 0.15,
+          bevelSize: .3,
+          bevelSegments: 5,
       })
 
-      var material = new THREE.MeshLambertMaterial({
+      let material = new THREE.MeshLambertMaterial({
         color: 0xa6c7ff,
         emissive: 0x000000,
       })
-      var mesh = new THREE.Mesh(geometry, material)
-      mesh.position.set(-120 + index * offset, 0, 60)
+
+      let mesh = new THREE.Mesh(geometry, material)
+      mesh.position.set(-120 + offset * index, 0, 40)
       mesh.geometry.center()
+      mesh.rotation.set( 0, Math.PI, 0)
       letters.push(mesh)
       
       scene.add(mesh)
     })
+    isRotated = letters.map(item => count(item))
+  }
 
-    rotate = letters.map(item => count(item))
-  })
+  doText(text)
   
   const width = window.innerWidth
   const height = window.innerHeight
@@ -154,47 +136,36 @@ function init() {
   renderer.setSize( window.innerWidth, window.innerHeight )
   
   window.addEventListener("resize", resize)
-  const footer = document.querySelector('footer')
-  footer.style.color = '#797882'
-//  document.body.appendChild( renderer.domElement )
 }
 
 function animate() {
-//  light.position.x = math.lerp(light.position.x, 98, data.ease)
-//  light.position.y = math.lerp(light.position.y, 63, data.ease)
-  light.position.z = math.lerp(light.position.z, 180, data.ease)
-  light.target.position.x = math.lerp(light.target.position.x, 33, data.ease)
-  light.target.position.y = math.lerp(light.target.position.y, 77, data.ease)
-  light.target.position.z = math.lerp(light.target.position.z, 16, data.ease)
-  requestAnimationFrame( animate )
-  renderer.render( scene, camera )
 
-//  letters[6].rotateOnAxis( axis, Math.PI * 0.01 )
-//
-  
+  if (trigger) {
+    light.position.z = math.lerp(light.position.z, 180, data.ease)
+    light.target.position.x = math.lerp(light.target.position.x, 33, data.ease)
+    light.target.position.y = math.lerp(light.target.position.y, 77, data.ease)
+    light.target.position.z = math.lerp(light.target.position.z, 16, data.ease)
+    requestAnimationFrame( animate )
+    renderer.render( scene, camera )
+    console.log('render')
+  }
  
   for (let k = 0; k < j; k++) {
-    rotate[k]()
+    if (isRotated[k]() && k == (j - 1)) {
+      trigger = false
+      setFooterColor()
+    }
   }
 
   if (i < bl) {
     i++
   } else {
     i = 0
-    if (j < letters.length) {
+    if (j < text.length) {
       j++
     }
   }
 
-//  if (i < letters.length) {
-//     if (letters[i].rotation.y < 6.2 ) {
-//      letters[i].rotation.y += 0.2
-//    } else {
-//      i++
-//    }
-//  }
-
-//  helper.update()
 }
 
 function resize() {
