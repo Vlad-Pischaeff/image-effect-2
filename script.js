@@ -84,7 +84,7 @@ function init() {
   scene.add(light.target)
 
   async function doText(str) {
-    let font = await loadFont('https://github.com/Vlad-Pischaeff/image-effect-2/blob/master/Prompt_Light_Regular.json')
+    let font = await loadFont('Prompt_Light_Regular.json')
     let arr = str.split('')
     let offset = 30 
     
